@@ -38,7 +38,6 @@ apt-get update && apt-get upgrade -y
 apt-get install -y git wget curl zsh tmux
 su $USER <<'EOF'
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" || echo "maybe i didnt change shell"
-sed -i '/ZSH_THEME/s/robbyrussell/af-magic/' file
 EOF
 chsh -s $(which zsh) $USER
 
