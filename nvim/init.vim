@@ -379,6 +379,9 @@ Plug 'tpope/vim-fugitive'
 " tree explorer plugin
 Plug 'scrooloose/nerdtree'
 
+" git plugin for nerdtree
+Plug 'Xuyuanp/nerdtree-git-plugin'
+
 " fuzzy finder plugin
 Plug 'kien/ctrlp.vim'
 
