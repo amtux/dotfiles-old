@@ -49,6 +49,7 @@ source ~/.gvm/scripts/gvm
 gvm install go1.4.3
 gvm use go1.4.3 --default
 go get golang.org/x/tools/cmd/godoc
+go get -u github.com/nsf/gocode
 EOF
 
 # remove vim from something better ;)
@@ -62,7 +63,6 @@ apt-get install -y python-dev python-pip python3-dev python3-pip
 apt-get install -y neovim
 
 #neovim config
-#wget -O ~/.config/nvim/init.vim https://raw.githubusercontent.com/amtux/dotfiles/master/nvim/init.vim
 su $USER <<'EOF'
 mkdir -p ~/.config/nvim/{colors,autoload}
 wget -O ~/.config/nvim/autoload/plug.vim https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
