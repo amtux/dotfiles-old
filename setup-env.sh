@@ -58,6 +58,7 @@ add-apt-repository -y ppa:neovim-ppa/unstable
 apt-get update
 apt-get install -y python-dev python-pip python3-dev python3-pip
 apt-get install -y neovim
+pip3 install neovim
 
 #neovim config
 su $USER <<'EOF'
