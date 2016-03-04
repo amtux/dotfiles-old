@@ -52,9 +52,6 @@ go get golang.org/x/tools/cmd/godoc
 go get -u github.com/nsf/gocode
 EOF
 
-# remove vim from something better ;)
-apt-get remove -y vim || echo "vim not on system - so not removed"
-
 # install neovim
 apt-get install -y software-properties-common
 add-apt-repository -y ppa:neovim-ppa/unstable
