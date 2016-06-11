@@ -30,8 +30,6 @@ fi
 if [ -z "$target_user" ]; then
     echo "ERROR: variable target_user user not passed from config (required)"
     exit 1
-else
-    runas_target="sudo -H -u $target_user sh -c"
 fi
 
 # create user if doesnt exist
@@ -57,8 +55,11 @@ fi
 if [ "$install_ohmyzsh" == "true" ]; then
     echo "installing oh_my_zsh"
     apt-get install -y curl zsh
-    runas_target "wget -O - https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh | bash"
-    chsh -s $(which zsh) $target_user
+    su $target_user << 'EOF'
+    cd ~/
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+EOF
+    #chsh -s $(which zsh) $target_user
 fi
 
 if [ "$install_neovim" == "true" ]; then
@@ -79,7 +80,8 @@ if [ "$install_neovim" == "true" ]; then
 EOF
     fi
     if [ "$alias_neovim_to_vim" == "true" ]; then
-    echo 'alias vim="nvim"' >> /home/$target_user/.zshrc
+        echo 'alias vim="nvim"' >> /home/$target_user/.zshrc
+    fi
 fi
 
 # install utils
