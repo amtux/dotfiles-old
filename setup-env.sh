@@ -57,7 +57,8 @@ if [ "$install_ohmyzsh" == "true" ]; then
     apt-get install -y curl zsh
     su $target_user << 'EOF'
     cd ~/
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+    zsh_install_out=$(sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)")
+    chsh -s $(which zsh) $target_user
 EOF
     #chsh -s $(which zsh) $target_user
 fi
