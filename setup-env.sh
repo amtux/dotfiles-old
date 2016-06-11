@@ -2,10 +2,9 @@
 
 ##############################################
 # usage:                                     #
-#   cd dotfiles/                             #
-#   make changes to config.sh                #
-#   sudo -s                                  #
-#   ./setup-env.sh config.sh    #
+#   $ sudo -s                                #
+#   # cd dotfiles/                           #
+#   # ./setup-env.sh config.sh               #
 ##############################################
 
 set -ex
@@ -105,5 +104,6 @@ if [ "$install_docker" == "true" ]; then
     wget -qO- https://get.docker.com/ | sh
     sudo usermod -aG docker $target_user
     apt-get -y install python-pip
+    pip install pip --upgrade
     pip install docker-compose
 fi

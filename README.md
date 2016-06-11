@@ -1,14 +1,14 @@
 #dotfiles
 
-This project allows me to setup a vanilla(ex. vagrant) environment with my own user, install needed packages(ex. tmux, zsh, neovim, golang) and add/edit configs for them
+Whenever I get my hands on a VM, whether it's a VPS, Openstack nodes, or a Vagrant VMs, etc I always need to first spend time setting up the environment with a oh_my_zsh customized shell, a pre-configured neovim editor, and a set of tools required to do everyday work.
 
 ##Setup
 ```bash
+sudo -s
 cd dotfiles/
-chmod 755 setup-env.sh
-sudo su -c './setup-env.sh <username>'
+# make appropriate changes to config.sh file: change username, set unwanted actions to "false"
+./setup-env.sh config.sh
 ```
-`<username>` is the name of user you want to setup this environment for. A new one will be created and provided sudo access if it doesn't exist.
 
 ##neovim rc file
 Takes the useful stuff from [amix's ultimate vimrc](https://github.com/amix/vimrc) and adds useful plugins using [vim-plug](https://github.com/junegunn/vim-plug).
