@@ -10,6 +10,11 @@
 
 set -ex
 
+# function taken from https://get.docker.com/ script
+command_exists() {
+	command -v "$@" > /dev/null 2>&1
+}
+
 # source config file
 if [ $# -lt 1 ]; then
     echo "usage: $0 /path/to/config.sh"
@@ -40,6 +45,10 @@ else
     echo "user $target_user already exists - skipping user creation"
 fi
 
+# give user sudo
+if ! command_exists sudo; then
+    apt-get install -y sudo
+fi
 if ! su $target_user -c "sudo -v"; then
     # add user to sudoers if not already in sudoers
     echo "$target_user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$target_user
@@ -58,9 +67,8 @@ if [ "$install_ohmyzsh" == "true" ]; then
     su $target_user << 'EOF'
     cd ~/
     zsh_install_out=$(sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)")
-    chsh -s $(which zsh) $target_user
 EOF
-    #chsh -s $(which zsh) $target_user
+    chsh -s $(which zsh) $target_user
 fi
 
 if [ "$install_neovim" == "true" ]; then
