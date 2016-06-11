@@ -3,73 +3,107 @@
 ##############################################
 # usage:                                     #
 #   cd dotfiles/                             #
-#   chmod 755 setup-env.sh                   #
-#   sudo su -c './setup-env.sh <username>'   #
-#   username will be created if doesnt exist #
+#   make changes to config.sh                #
+#   sudo -s                                  #
+#   ./setup-env.sh config.sh    #
 ##############################################
 
-set -eux
+set -ex
 
+# function taken from https://get.docker.com/ script
+command_exists() {
+	command -v "$@" > /dev/null 2>&1
+}
+
+# source config file
 if [ $# -lt 1 ]; then
-    echo "usage: $0 <username>"
-    echo "username: name of user you want to set the env for"
+    echo "usage: $0 /path/to/config.sh"
+    echo "pass the config.sh with correct params"
     exit 1
 else
-    USER=$1
+    CONF_FILE=$1
+    if ! [ -f $CONF_FILE ]; then
+        echo "ERROR: config file: $CONF_FILE not found"
+        exit 1
+    else
+        echo "found config: $CONF_FILE"
+        source $CONF_FILE
+    fi
 fi
 
-# create user & add to sudoers 
-if ! getent passwd $USER; then
+# confirm required var target_user is provided via config file
+if [ -z "$target_user" ]; then
+    echo "ERROR: variable target_user user not passed from config (required)"
+    exit 1
+fi
+
+# create user if doesnt exist
+if ! getent passwd $target_user; then
     # create user if doesnt exist
-    useradd -m -U $USER
+    useradd -m -U $target_user
 else
-    echo "user $USER already exists - skipping user creation"
+    echo "user $target_user already exists - skipping user creation"
 fi
 
-if ! su $USER -c "sudo -v"; then
+# give user sudo
+if ! command_exists sudo; then
+    apt-get install -y sudo
+fi
+if ! su $target_user -c "sudo -v"; then
     # add user to sudoers if not already in sudoers
-    echo "$USER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER
+    echo "$target_user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$target_user
 fi
 
 # update packages
-apt-get update && apt-get upgrade -y
+if [ "$upgrade_packages" == "true" ]; then
+    echo "upgrading packages"
+    apt-get update && apt-get upgrade -y
+fi
 
 # install zsh
-apt-get install -y git wget curl zsh tmux
-su $USER <<'EOF'
-sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" || echo "maybe i didnt change shell"
+if [ "$install_ohmyzsh" == "true" ]; then
+    echo "installing oh_my_zsh"
+    apt-get install -y zsh git
+    su $target_user << 'EOF'
+    cd ~/
+    git clone git://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
+    [ -f ~/.zshrc ] && cp ~/.zshrc ~/.zshrc.orig
+    cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc
 EOF
-chsh -s $(which zsh) $USER
+    chsh -s $(which zsh) $target_user
+fi
 
-# install golang
-apt-get install -y bison
-su $USER <<'EOF'
-zsh < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-source ~/.gvm/scripts/gvm
-gvm install go1.4.3
-gvm use go1.4.3 --default
-go get golang.org/x/tools/cmd/godoc
-go get -u github.com/nsf/gocode
+if [ "$install_neovim" == "true" ]; then
+    # install neovim
+    apt-get install -y software-properties-common
+    add-apt-repository -y ppa:neovim-ppa/unstable
+    apt-get update
+    apt-get install -y python-dev python-pip python3-dev python3-pip
+    apt-get install -y neovim
+    pip3 install neovim
+    if [ "$install_neovim_config" == "true" ]; then
+        #neovim config
+        su $target_user <<'EOF'
+        mkdir -p ~/.config/nvim/{colors,autoload}
+        wget -O ~/.config/nvim/autoload/plug.vim https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+        wget -O ~/.config/nvim/colors/molokai.vim https://raw.githubusercontent.com/tomasr/molokai/master/colors/molokai.vim
+        cp nvim/init.vim ~/.config/nvim/
 EOF
-
-# install neovim
-apt-get install -y software-properties-common
-add-apt-repository -y ppa:neovim-ppa/unstable
-apt-get update
-apt-get install -y python-dev python-pip python3-dev python3-pip
-apt-get install -y neovim
-pip3 install neovim
-
-#neovim config
-su $USER <<'EOF'
-mkdir -p ~/.config/nvim/{colors,autoload}
-wget -O ~/.config/nvim/autoload/plug.vim https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-wget -O ~/.config/nvim/colors/molokai.vim https://raw.githubusercontent.com/tomasr/molokai/master/colors/molokai.vim
-cp nvim/init.vim ~/.config/nvim/
-EOF
+    fi
+    if [ "$alias_neovim_to_vim" == "true" ]; then
+        echo 'alias vim="nvim"' >> /home/$target_user/.zshrc
+    fi
+fi
 
 # install utils
-apt-get install -y nmon htop
+if [ "$install_utils" == true ]; then
+    apt-get install -y nmon htop git wget curl zsh tmux
+fi
 
-#check if vim symlink gets set
-ln -s $(which nvim) /usr/bin/vim || echo "couldn't symlink nvim to vim - maybe it's already set"
+# install docker
+if [ "$install_docker" == "true" ]; then
+    wget -qO- https://get.docker.com/ | sh
+    sudo usermod -aG docker $target_user
+    apt-get -y install python-pip
+    pip install docker-compose
+fi
