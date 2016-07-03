@@ -9,10 +9,6 @@
 
 set -ex
 
-# function taken from https://get.docker.com/ script
-command_exists() {
-	command -v "$@" > /dev/null 2>&1
-}
 
 # source config file
 if [ $# -lt 1 ]; then
@@ -30,6 +26,24 @@ else
     fi
 fi
 
+# helper funcs
+
+command_exists() {
+    # function taken from https://get.docker.com/ script
+	command -v "$@" > /dev/null 2>&1
+}
+
+install_pip() {
+    apt-get -y install python-pip python-dev
+    pip install pip --upgrade
+}
+
+install_pip3() {
+    apt-get -y install python3-pip python3-dev
+    pip3 install pip --upgrade
+}
+
+# --------------------------------------------------
 # confirm required var target_user is provided via config file
 if [ -z "$target_user" ]; then
     echo "ERROR: variable target_user user not passed from config (required)"
@@ -52,6 +66,7 @@ if ! su $target_user -c "sudo -v"; then
     # add user to sudoers if not already in sudoers
     echo "$target_user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$target_user
 fi
+# --------------------------------------------------
 
 # update packages
 if [ "$upgrade_packages" == "true" ]; then
@@ -77,7 +92,8 @@ if [ "$install_neovim" == "true" ]; then
     apt-get install -y software-properties-common
     add-apt-repository -y ppa:neovim-ppa/unstable
     apt-get update
-    apt-get install -y python-dev python-pip python3-dev python3-pip
+    install_pip
+    install_pip3
     apt-get install -y neovim
     pip3 install neovim
     if [ "$install_neovim_config" == "true" ]; then
@@ -95,7 +111,7 @@ EOF
 fi
 
 # install utils
-if [ "$install_utils" == true ]; then
+if [ "$install_utils" == "true" ]; then
     apt-get install -y nmon htop git wget curl zsh tmux
 fi
 
@@ -103,7 +119,6 @@ fi
 if [ "$install_docker" == "true" ]; then
     wget -qO- https://get.docker.com/ | sh
     sudo usermod -aG docker $target_user
-    apt-get -y install python-pip
-    pip install pip --upgrade
+    install_pip
     pip install docker-compose
 fi
